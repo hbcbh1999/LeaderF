@@ -30,7 +30,13 @@ class AnyExplorer(Explorer):
         return True
 
 """
-g:Lf_
+let g:Lf_Extensions = {
+    \ apple: {
+    \       source: [], "cmd", funcref,
+    \       accept: funcref,
+    \       preview: funcref,
+    \ },
+\}
 """
 #*****************************************************
 # AnyExplManager
