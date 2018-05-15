@@ -32,10 +32,28 @@ class AnyExplorer(Explorer):
 """
 let g:Lf_Extensions = {
     \ apple: {
-    \       source: [], "cmd", funcref,
+    \       source: [], "grep -r '%s' *", funcref,
     \       accept: funcref,
     \       preview: funcref,
+    \       supports_name_only: 0,
+    \       get_digest: funcref,
+    \       get_digest_start_pos: funcref,
+    \       before_enter: funcref,
+    \       after_enter: funcref,
+    \       before_exit: funcref,
+    \       after_exit: funcref,
+    \       highlights_def: {
+    \               "Lf_hl_bufNumber": "^\s*\zs\d\+",
+    \               "Lf_hl_buf": "^\s*\zs\d\+",
+    \       }
+    \       highlights_cmd: {
+    \               "hi Lf_hl_bufNumber guifg=red",
+    \               "hi Lf_hl_buf guifg=green",
+    \       }
+    \       supports_multi: 0,
+    \       supports_refine: 0,
     \ },
+    \ orange: {}
 \}
 """
 #*****************************************************
