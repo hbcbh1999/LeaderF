@@ -153,11 +153,14 @@ class AnyExplManager(Manager):
         self._match_ids = []
 
 
-
+class AnyHub(object):
+    def __init__(self):
+        self._extensions = lfEval("g:Lf_Extensions")
+        self._managers = {}
 
 #*****************************************************
-# anyExplManager is a singleton
+# anyHub is a singleton
 #*****************************************************
-anyExplManager = AnyExplManager()
+anyHub = AnyHub()
 
-__all__ = ['anyExplManager']
+__all__ = ['anyHub']
