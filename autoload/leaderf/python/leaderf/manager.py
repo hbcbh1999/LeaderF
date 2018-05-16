@@ -643,7 +643,7 @@ class Manager(object):
             file = self._getInstance().currentLine
             line_nr = self._getInstance().window.cursor[0]
             self._getInstance().exitBuffer()
-            self._accept(file, mode, self._getInstance().buffer, line_nr) # for bugTag
+            self._accept(file, mode, self._getInstance().buffer, line_nr) # for bufTag
 
         self._setAutochdir()
 

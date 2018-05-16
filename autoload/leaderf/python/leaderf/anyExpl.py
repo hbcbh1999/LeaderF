@@ -37,7 +37,6 @@ let g:Lf_Extensions = {
     \       preview: funcref,
     \       supports_name_only: 0,
     \       get_digest: funcref,
-    \       get_digest_start_pos: funcref,
     \       before_enter: funcref,
     \       after_enter: funcref,
     \       before_exit: funcref,
