@@ -13,7 +13,7 @@ endif
 
 exec g:Lf_py "from leaderf.anyExpl import *"
 
-function! leaderf#Any#parseArguments(A, L, P)
+function! leaderf#Any#parseArguments(argLead, cmdline, cursorPos)
     return ["aaa", "bbb"]
 endfunction
 
