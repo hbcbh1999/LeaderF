@@ -17,11 +17,14 @@ class AnyExplorer(Explorer):
     def __init__(self):
         pass
 
+    def setConfig(self, category, config):
+        self._category, self._config = category, config
+
     def getContent(self, *args, **kwargs):
         pass
 
     def getStlCategory(self):
-        return 'Buffer'
+        return self._category
 
     def getStlCurDir(self):
         return escQuote(lfEncode(os.getcwd()))
@@ -59,8 +62,10 @@ let g:Lf_Extensions = {
 # AnyExplManager
 #*****************************************************
 class AnyExplManager(Manager):
-    def __init__(self):
+    def __init__(self, category, config):
         super(AnyExplManager, self).__init__()
+        self._getExplorer().setConfig(category, config)
+        self._config = extension[1]
         self._match_ids = []
 
     def _getExplClass(self):
@@ -157,6 +162,10 @@ class AnyHub(object):
     def __init__(self):
         self._extensions = lfEval("g:Lf_Extensions")
         self._managers = {}
+
+    def start(self, category, *args, **kwargs):
+        if category not in self._managers:
+            self._managers[category] = AnyExplManager(category, self._extensions[category])
 
 #*****************************************************
 # anyHub is a singleton
