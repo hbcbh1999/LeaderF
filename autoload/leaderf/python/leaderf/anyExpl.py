@@ -65,7 +65,7 @@ class AnyExplManager(Manager):
     def __init__(self, category, config):
         super(AnyExplManager, self).__init__()
         self._getExplorer().setConfig(category, config)
-        self._config = extension[1]
+        self._config = config
         self._match_ids = []
 
     def _getExplClass(self):
