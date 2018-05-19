@@ -8,6 +8,7 @@ import os.path
 from .utils import *
 from .explorer import *
 from .manager import *
+from .asyncExecutor import AsyncExecutor
 
 
 #*****************************************************
@@ -15,13 +16,24 @@ from .manager import *
 #*****************************************************
 class AnyExplorer(Explorer):
     def __init__(self):
-        pass
+        self._executor = []
 
     def setConfig(self, category, config):
         self._category, self._config = category, config
 
     def getContent(self, *args, **kwargs):
-        pass
+        source = self._config.get("source")
+        if isinstance(source, vim.List):
+            return list(lfEncode(lfBytes2Str(line)) for line in source)
+        elif isinstance(source, vim.Function):
+            return list(lfBytes2Str(line) for line in list(source()))
+        elif type(source) == type(b"string"): # "grep -r '%s' *"
+            executor = AsyncExecutor()
+            self._executor.append(executor)
+            result = executor.execute(lfBytes2Str(source))
+            return result
+        else:
+            return None
 
     def getStlCategory(self):
         return self._category
@@ -30,32 +42,35 @@ class AnyExplorer(Explorer):
         return escQuote(lfEncode(os.getcwd()))
 
     def supportsNameOnly(self):
-        return True
+        return bool(self._config.get("supports_name_only", False))
+
+    def supportsMulti(self):
+        return bool(self._config.get("supports_multi", False))
 
 """
 let g:Lf_Extensions = {
-    \ apple: {
-    \       source: [], "grep -r '%s' *", funcref,
-    \       accept: funcref,
-    \       preview: funcref,
-    \       supports_name_only: 0,
-    \       get_digest: funcref,
-    \       before_enter: funcref,
-    \       after_enter: funcref,
-    \       before_exit: funcref,
-    \       after_exit: funcref,
-    \       highlights_def: {
-    \               "Lf_hl_bufNumber": "^\s*\zs\d\+",
-    \               "Lf_hl_buf": "^\s*\zs\d\+",
+    \ "apple": {
+    \       "source": [], "grep -r '%s' *", funcref,
+    \       "accept": funcref,
+    \       "preview": funcref,
+    \       "supports_name_only": 0,
+    \       "get_digest": funcref,
+    \       "before_enter": funcref,
+    \       "after_enter": funcref,
+    \       "before_exit": funcref,
+    \       "after_exit": funcref,
+    \       "highlights_def": {
+    \               "Lf_hl_apple": "^\s*\zs\d\+",
+    \               "Lf_hl_appleId": "\d\+$",
     \       }
-    \       highlights_cmd: {
-    \               "hi Lf_hl_bufNumber guifg=red",
-    \               "hi Lf_hl_buf guifg=green",
-    \       }
-    \       supports_multi: 0,
-    \       supports_refine: 0,
+    \       "highlights_cmd": [
+    \               "hi Lf_hl_apple guifg=red",
+    \               "hi Lf_hl_appleId guifg=green",
+    \       ],
+    \       "supports_multi": 0,
+    \       "supports_refine": 0,
     \ },
-    \ orange: {}
+    \ "orange": {}
 \}
 """
 #*****************************************************
@@ -90,17 +105,11 @@ class AnyExplManager(Manager):
                   2, return the directory name
         """
         if not line:
-            return ''
-        prefix_len = self._getExplorer().getPrefixLength()
-        if mode == 0:
-            return line[prefix_len:]
-        elif mode == 1:
-            buf_number = int(re.sub(r"^.*?(\d+).*$", r"\1", line))
-            basename = getBasename(vim.buffers[buf_number].name)
-            return basename if basename else "[No Name]"
+            return ""
+        if "get_digest" in self._config:
+            return self._config["get_digest"][0](line, mode)
         else:
-            start_pos = line.find(' "')
-            return line[start_pos+2 : -1]
+            return super(AnyExplManager, self)._getDigest(line, mode)
 
     def _getDigestStartPos(self, line, mode):
         """
@@ -112,17 +121,10 @@ class AnyExplManager(Manager):
         """
         if not line:
             return 0
-        prefix_len = self._getExplorer().getPrefixLength()
-        if mode == 0:
-            return prefix_len
-        elif mode == 1:
-            return prefix_len
+        if "get_digest" in self._config:
+            return self._config["get_digest"][1](line, mode)
         else:
-            buf_number = int(re.sub(r"^.*?(\d+).*$", r"\1", line))
-            basename = getBasename(vim.buffers[buf_number].name)
-            space_num = self._getExplorer().getMaxBufnameLen() \
-                        - int(lfEval("strdisplaywidth('%s')" % escQuote(basename)))
-            return prefix_len + lfBytesLen(basename) + space_num + 2
+            return super(AnyExplManager, self)._getDigestStartPos(line, mode)
 
     def _createHelp(self):
         help = []
@@ -138,34 +140,52 @@ class AnyExplManager(Manager):
         help.append('" ---------------------------------------------------------')
         return help
 
+    def _beforeEnter(self):
+        super(AnyExplManager, self)._beforeEnter()
+        if "before_enter" in self._config:
+            self._config["before_enter"]()
+
     def _afterEnter(self):
         super(AnyExplManager, self)._afterEnter()
-        id = int(lfEval("matchadd('Lf_hl_bufNumber', '^\s*\zs\d\+')"))
-        self._match_ids.append(id)
-        id = int(lfEval("matchadd('Lf_hl_bufIndicators', '^\s*\d\+\s*\zsu\=\s*[#%]\=...')"))
-        self._match_ids.append(id)
-        id = int(lfEval("matchadd('Lf_hl_bufModified', '^\s*\d\+\s*u\=\s*[#%]\=.+\s*\zs.*$')"))
-        self._match_ids.append(id)
-        id = int(lfEval("matchadd('Lf_hl_bufNomodifiable', '^\s*\d\+\s*u\=\s*[#%]\=..-\s*\zs.*$')"))
-        self._match_ids.append(id)
-        id = int(lfEval('''matchadd('Lf_hl_bufDirname', ' \zs".*"$')'''))
-        self._match_ids.append(id)
+        if "after_enter" in self._config:
+            self._config["after_enter"]()
+
+        highlights_cmd = self._config.get("highlights_cmd", [])
+        for cmd in highlights_cmd:
+            lfCmd(cmd)
+        highlights_def = self._config.get("highlights_def", {})
+        for group, pattern in highlights_def.items():
+            id = int(lfEval("matchadd('%s', '%s')" %
+                        (lfBytes2Str(group), escQuote(lfBytes2Str(pattern)))))
+            self._match_ids.append(id)
 
     def _beforeExit(self):
         super(AnyExplManager, self)._beforeExit()
+        if "before_exit" in self._config:
+            self._config["before_exit"]()
+
         for i in self._match_ids:
             lfCmd("silent! call matchdelete(%d)" % i)
         self._match_ids = []
 
+    def _afterExit(self):
+        super(AnyExplManager, self)._afterExit()
+        if "after_exit" in self._config:
+            self._config["after_exit"]()
+
+    def _supportsRefine(self):
+        return bool(self._config.get("supports_refine", False))
+
 
 class AnyHub(object):
     def __init__(self):
-        self._extensions = lfEval("g:Lf_Extensions")
+        self._extensions = vim.bindeval("g:Lf_Extensions")
         self._managers = {}
 
     def start(self, category, *args, **kwargs):
         if category not in self._managers:
             self._managers[category] = AnyExplManager(category, self._extensions[category])
+        self._managers[category].startExplorer("bottom", *args, **kwargs)
 
 #*****************************************************
 # anyHub is a singleton
