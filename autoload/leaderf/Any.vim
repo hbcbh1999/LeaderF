@@ -51,7 +51,7 @@ function! leaderf#Any#start(bang, ...)
             echohl NONE
             return
         else
-            call leaderf#LfPy("anyHub.start('".a:1."')")
+            call leaderf#LfPy("anyHub.start('".a:1."', bang=".a:bang.")")
         endif
     endif
 endfunction
