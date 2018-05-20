@@ -13,19 +13,22 @@ endif
 
 exec g:Lf_py "from leaderf.anyExpl import *"
 
-function! leaderf#Any#Maps()
+function! leaderf#Any#Maps(category)
+    let b:Lf_AnyExplManager = "anyHub._managers['".a:category."']."
     nmapclear <buffer>
-    nnoremap <buffer> <silent> <CR>          :exec g:Lf_py "bufExplManager.accept()"<CR>
-    nnoremap <buffer> <silent> o             :exec g:Lf_py "bufExplManager.accept()"<CR>
-    nnoremap <buffer> <silent> <2-LeftMouse> :exec g:Lf_py "bufExplManager.accept()"<CR>
-    nnoremap <buffer> <silent> x             :exec g:Lf_py "bufExplManager.accept('h')"<CR>
-    nnoremap <buffer> <silent> v             :exec g:Lf_py "bufExplManager.accept('v')"<CR>
-    nnoremap <buffer> <silent> t             :exec g:Lf_py "bufExplManager.accept('t')"<CR>
-    nnoremap <buffer> <silent> q             :exec g:Lf_py "bufExplManager.quit()"<CR>
-    nnoremap <buffer> <silent> i             :exec g:Lf_py "self.input()"<CR>
-    nnoremap <buffer> <silent> <F1>          :exec g:Lf_py "bufExplManager.toggleHelp()"<CR>
-    if has_key(g:Lf_NormalMap, "Buffer")
-        for i in g:Lf_NormalMap["Buffer"]
+    nnoremap <buffer> <silent> <CR>          :exec g:Lf_py b:Lf_AnyExplManager."accept()"<CR>
+    nnoremap <buffer> <silent> o             :exec g:Lf_py b:Lf_AnyExplManager."accept()"<CR>
+    nnoremap <buffer> <silent> <2-LeftMouse> :exec g:Lf_py b:Lf_AnyExplManager."accept()"<CR>
+    nnoremap <buffer> <silent> x             :exec g:Lf_py b:Lf_AnyExplManager."accept('h')"<CR>
+    nnoremap <buffer> <silent> v             :exec g:Lf_py b:Lf_AnyExplManager."accept('v')"<CR>
+    nnoremap <buffer> <silent> t             :exec g:Lf_py b:Lf_AnyExplManager."accept('t')"<CR>
+    nnoremap <buffer> <silent> q             :exec g:Lf_py b:Lf_AnyExplManager."quit()"<CR>
+    nnoremap <buffer> <silent> <Esc>         :exec g:Lf_py b:Lf_AnyExplManager."quit()"<CR>
+    nnoremap <buffer> <silent> i             :exec g:Lf_py b:Lf_AnyExplManager."input()"<CR>
+    nnoremap <buffer> <silent> <Tab>         :exec g:Lf_py b:Lf_AnyExplManager."input()"<CR>
+    nnoremap <buffer> <silent> <F1>          :exec g:Lf_py b:Lf_AnyExplManager."toggleHelp()"<CR>
+    if has_key(g:Lf_NormalMap, a:category)
+        for i in g:Lf_NormalMap[a:category]
             exec 'nnoremap <buffer> <silent> '.i[0].' '.i[1]
         endfor
     endif

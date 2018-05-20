@@ -80,6 +80,7 @@ class AnyExplManager(Manager):
     def __init__(self, category, config):
         super(AnyExplManager, self).__init__()
         self._getExplorer().setConfig(category, config)
+        self._category = category
         self._config = config
         self._match_ids = []
 
@@ -87,7 +88,7 @@ class AnyExplManager(Manager):
         return AnyExplorer
 
     def _defineMaps(self):
-        lfCmd("call leaderf#Any#Maps()")
+        lfCmd("call leaderf#Any#Maps('%s')" % self._category)
 
     def _acceptSelection(self, *args, **kwargs):
         if len(args) == 0:
@@ -132,10 +133,8 @@ class AnyExplManager(Manager):
         help.append('" x : open file under cursor in a horizontally split window')
         help.append('" v : open file under cursor in a vertically split window')
         help.append('" t : open file under cursor in a new tabpage')
-        help.append('" d : wipe out buffer under cursor')
-        help.append('" D : delete buffer under cursor')
-        help.append('" i : switch to input mode')
-        help.append('" q : quit')
+        help.append('" i/<Tab> : switch to input mode')
+        help.append('" q/<Esc> : quit')
         help.append('" <F1> : toggle this help')
         help.append('" ---------------------------------------------------------')
         return help
