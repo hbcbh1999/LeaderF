@@ -34,6 +34,9 @@ function! leaderf#Any#Maps(category)
     endif
 endfunction
 
+let s:Lf_Categorys = ["File", "Buffer", "Mru", "Tag", "BufTag", "Function",
+            \ "Line", "HistoryCmd", "HistorySearch", "Help", "Colorscheme"]
+
 function! leaderf#Any#parseArguments(argLead, cmdline, cursorPos)
     return ["aaa", "bbb"]
 endfunction
@@ -42,9 +45,14 @@ function! leaderf#Any#start(bang, ...)
     if a:0 == 0
 
     else
-exec g:Lf_py '<< EOF'
-anyHub.start("apple")        
-EOF
+        if !has_key(g:Lf_Extensions, a:1) && index(s:Lf_Categorys, a:1) == -1
+            echohl Error
+            echo "Unknown argument '" . a:1 . "'!"
+            echohl NONE
+            return
+        else
+            call leaderf#LfPy("anyHub.start('".a:1."')")
+        endif
     endif
 endfunction
 
