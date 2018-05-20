@@ -225,7 +225,7 @@ class BufTagExplManager(Manager):
         if len(args) == 0:
             return
         line = args[0]
-        if line[0].isspace():
+        if line[0].isspace(): # if g:Lf_PreviewCode == 1
             buffer = args[1]
             line_nr = args[2]
             line = buffer[line_nr - 2]

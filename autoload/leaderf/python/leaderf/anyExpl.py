@@ -94,8 +94,8 @@ class AnyExplManager(Manager):
         if len(args) == 0:
             return
         line = args[0]
-        buf_number = int(re.sub(r"^.*?(\d+).*$", r"\1", line))
-        lfCmd("hide buffer %d" % buf_number)
+        if "accept" in self._config:
+            self._config["accept"](line)
 
     def _getDigest(self, line, mode):
         """
@@ -108,7 +108,7 @@ class AnyExplManager(Manager):
         if not line:
             return ""
         if "get_digest" in self._config:
-            return self._config["get_digest"][0](line, mode)
+            return lfBytes2Str(self._config["get_digest"](line, mode)[0])
         else:
             return super(AnyExplManager, self)._getDigest(line, mode)
 
@@ -123,7 +123,7 @@ class AnyExplManager(Manager):
         if not line:
             return 0
         if "get_digest" in self._config:
-            return self._config["get_digest"][1](line, mode)
+            return self._config["get_digest"](line, mode)[1]
         else:
             return super(AnyExplManager, self)._getDigestStartPos(line, mode)
 
@@ -185,6 +185,7 @@ class AnyHub(object):
         if category not in self._managers:
             self._managers[category] = AnyExplManager(category, self._extensions[category])
         self._managers[category].startExplorer("bottom", *args, **kwargs)
+
 
 #*****************************************************
 # anyHub is a singleton
