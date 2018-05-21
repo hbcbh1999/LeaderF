@@ -11,6 +11,34 @@ from .manager import *
 from .asyncExecutor import AsyncExecutor
 
 
+"""
+let g:Lf_Extensions = {
+    \ "apple": {
+    \       "source": [], "grep -r '%s' *", funcref (...)
+    \       "filter": funcref ([], ...),
+    \       "accept": funcref (line, ...),
+    \       "options": [],
+    \       "preview": funcref,
+    \       "supports_name_only": 0,
+    \       "get_digest": funcref,
+    \       "before_enter": funcref (...),
+    \       "after_enter": funcref (orig_buf_nr, orig_cursor, ...),
+    \       "before_exit": funcref (orig_buf_nr, orig_cursor, ...),
+    \       "after_exit": funcref (...),
+    \       "highlights_def": {
+    \               "Lf_hl_apple": '^\s*\zs\d\+',
+    \               "Lf_hl_appleId": '\d\+$',
+    \       },
+    \       "highlights_cmd": [
+    \               "hi Lf_hl_apple guifg=red",
+    \               "hi Lf_hl_appleId guifg=green",
+    \       ],
+    \       "supports_multi": 0,
+    \       "supports_refine": 0,
+    \ },
+    \ "orange": {}
+\}
+"""
 #*****************************************************
 # AnyExplorer
 #*****************************************************
@@ -23,17 +51,25 @@ class AnyExplorer(Explorer):
 
     def getContent(self, *args, **kwargs):
         source = self._config.get("source")
+        if not source:
+            return None
+
         if isinstance(source, vim.List):
-            return list(lfEncode(lfBytes2Str(line)) for line in source)
+            result = list(lfEncode(lfBytes2Str(line)) for line in source)
         elif isinstance(source, vim.Function):
-            return list(lfBytes2Str(line) for line in list(source()))
+            result = list(lfBytes2Str(line) for line in list(source(*kwargs["options"])))
         elif type(source) == type(b"string"): # "grep -r '%s' *"
             executor = AsyncExecutor()
             self._executor.append(executor)
             result = executor.execute(lfBytes2Str(source))
-            return result
         else:
             return None
+
+        filter = self._config.get("filter")
+        if filter:
+            result = list(filter(result, *kwargs["options"]))
+
+        return result
 
     def getStlCategory(self):
         return self._category
@@ -47,32 +83,7 @@ class AnyExplorer(Explorer):
     def supportsMulti(self):
         return bool(self._config.get("supports_multi", False))
 
-"""
-let g:Lf_Extensions = {
-    \ "apple": {
-    \       "source": [], "grep -r '%s' *", funcref,
-    \       "accept": funcref,
-    \       "preview": funcref,
-    \       "supports_name_only": 0,
-    \       "get_digest": funcref,
-    \       "before_enter": funcref,
-    \       "after_enter": funcref,
-    \       "before_exit": funcref,
-    \       "after_exit": funcref,
-    \       "highlights_def": {
-    \               "Lf_hl_apple": "^\s*\zs\d\+",
-    \               "Lf_hl_appleId": "\d\+$",
-    \       }
-    \       "highlights_cmd": [
-    \               "hi Lf_hl_apple guifg=red",
-    \               "hi Lf_hl_appleId guifg=green",
-    \       ],
-    \       "supports_multi": 0,
-    \       "supports_refine": 0,
-    \ },
-    \ "orange": {}
-\}
-"""
+
 #*****************************************************
 # AnyExplManager
 #*****************************************************
@@ -94,8 +105,9 @@ class AnyExplManager(Manager):
         if len(args) == 0:
             return
         line = args[0]
-        if "accept" in self._config:
-            self._config["accept"](line)
+        accept = self._config.get("accept")
+        if accept:
+            accept(line, *self._options)
 
     def _getDigest(self, line, mode):
         """
@@ -107,8 +119,10 @@ class AnyExplManager(Manager):
         """
         if not line:
             return ""
-        if "get_digest" in self._config:
-            return lfBytes2Str(self._config["get_digest"](line, mode)[0])
+
+        get_digest = self._config.get("get_digest")
+        if get_digest:
+            return lfBytes2Str(get_digest(line, mode)[0])
         else:
             return super(AnyExplManager, self)._getDigest(line, mode)
 
@@ -122,8 +136,10 @@ class AnyExplManager(Manager):
         """
         if not line:
             return 0
-        if "get_digest" in self._config:
-            return self._config["get_digest"](line, mode)[1]
+
+        get_digest = self._config.get("get_digest")
+        if get_digest:
+            return get_digest(line, mode)[1]
         else:
             return super(AnyExplManager, self)._getDigestStartPos(line, mode)
 
@@ -141,13 +157,17 @@ class AnyExplManager(Manager):
 
     def _beforeEnter(self):
         super(AnyExplManager, self)._beforeEnter()
-        if "before_enter" in self._config:
-            self._config["before_enter"]()
+        before_enter = self._config.get("before_enter")
+        if before_enter:
+            before_enter(*self._options)
 
     def _afterEnter(self):
         super(AnyExplManager, self)._afterEnter()
-        if "after_enter" in self._config:
-            self._config["after_enter"]()
+        after_enter = self._config.get("after_enter")
+        if after_enter:
+            orig_buf_nr = self._getInstance().getOriginalPos()[2].number
+            line, col = self._getInstance().getOriginalCursor()
+            after_enter(orig_buf_nr, [line, col+1], *self._options)
 
         highlights_cmd = self._config.get("highlights_cmd", [])
         for cmd in highlights_cmd:
@@ -160,8 +180,11 @@ class AnyExplManager(Manager):
 
     def _beforeExit(self):
         super(AnyExplManager, self)._beforeExit()
-        if "before_exit" in self._config:
-            self._config["before_exit"]()
+        before_exit = self._config.get("before_exit")
+        if before_exit:
+            orig_buf_nr = self._getInstance().getOriginalPos()[2].number
+            line, col = self._getInstance().getOriginalCursor()
+            before_exit(orig_buf_nr, [line, col+1], *self._options)
 
         for i in self._match_ids:
             lfCmd("silent! call matchdelete(%d)" % i)
@@ -169,22 +192,36 @@ class AnyExplManager(Manager):
 
     def _afterExit(self):
         super(AnyExplManager, self)._afterExit()
-        if "after_exit" in self._config:
-            self._config["after_exit"]()
+        after_exit = self._config.get("after_exit")
+        if after_exit:
+            after_exit(*self._options)
 
     def _supportsRefine(self):
         return bool(self._config.get("supports_refine", False))
 
+    def startExplorer(self, win_pos, *args, **kwargs):
+        self._options = kwargs["options"]
+        super(AnyExplManager, self).startExplorer(win_pos, *args, **kwargs)
+
 
 class AnyHub(object):
     def __init__(self):
-        self._extensions = vim.bindeval("g:Lf_Extensions")
         self._managers = {}
 
     def start(self, category, *args, **kwargs):
+        self._extensions = vim.bindeval("g:Lf_Extensions")
         if category not in self._managers:
             self._managers[category] = AnyExplManager(category, self._extensions[category])
-        self._managers[category].startExplorer("bottom", *args, **kwargs)
+
+        positions = {"--top", "--bottom", "--left", "--right", "--belowright", "--aboveleft", "--fullScreen"}
+        win_pos = "--bottom"
+        for i in kwargs["options"]:
+            if i in positions:
+                win_pos = i
+                kwargs["options"].remove(i)
+                break
+
+        self._managers[category].startExplorer(win_pos[2:], *args, **kwargs)
 
 
 #*****************************************************
