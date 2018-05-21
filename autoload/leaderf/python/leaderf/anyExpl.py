@@ -23,6 +23,7 @@ let g:Lf_Extensions = {
     \       "get_digest": funcref,
     \       "before_enter": funcref (...),
     \       "after_enter": funcref (orig_buf_nr, orig_cursor, ...),
+    \       "bang_enter": funcref (orig_buf_nr, orig_cursor, ...),
     \       "before_exit": funcref (orig_buf_nr, orig_cursor, ...),
     \       "after_exit": funcref (...),
     \       "highlights_def": {
@@ -177,6 +178,13 @@ class AnyExplManager(Manager):
             id = int(lfEval("matchadd('%s', '%s')" %
                         (lfBytes2Str(group), escQuote(lfBytes2Str(pattern)))))
             self._match_ids.append(id)
+
+    def _bangEnter(self):
+        bang_enter = self._config.get("bang_enter")
+        if bang_enter:
+            orig_buf_nr = self._getInstance().getOriginalPos()[2].number
+            line, col = self._getInstance().getOriginalCursor()
+            bang_enter(orig_buf_nr, [line, col+1], *self._options)
 
     def _beforeExit(self):
         super(AnyExplManager, self)._beforeExit()

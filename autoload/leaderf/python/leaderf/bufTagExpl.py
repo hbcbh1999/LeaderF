@@ -411,16 +411,11 @@ class BufTagExplManager(Manager):
             vim.current.tabpage, vim.current.window, vim.current.buffer = cur_pos
             vim.options['eventignore'] = saved_eventignore
 
-    def startExplorer(self, win_pos, *args, **kwargs):
-        super(BufTagExplManager, self).startExplorer(win_pos, *args, **kwargs)
-        if not self._launched or len(args) > 0:
-            return
-        if kwargs.get('bang', False):
-            self._relocateCursor()
+    def _bangEnter(self):
+        self._relocateCursor()
 
     def _relocateCursor(self):
         inst = self._getInstance()
-        inst.buffer.options['modifiable'] = False
         orig_buf_nr = inst.getOriginalPos()[2].number
         orig_line = inst.getOriginalCursor()[0]
         tags = []

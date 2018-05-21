@@ -169,6 +169,9 @@ class Manager(object):
     def _afterExit(self):
         pass
 
+    def _bangEnter(self):
+        pass
+
     def _getList(self, pairs):
         """
         this function can be overridden
@@ -761,6 +764,8 @@ class Manager(object):
                 self.input()
             else:
                 lfCmd("echo")
+                self._getInstance().buffer.options['modifiable'] = False
+                self._bangEnter()
         else:
             if lfEval("g:Lf_CursorBlink") == '0':
                 self._getInstance().initBuffer(content, self._getUnit(), self._getExplorer().setContent)
