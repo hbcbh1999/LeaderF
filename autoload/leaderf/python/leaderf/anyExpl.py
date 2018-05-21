@@ -68,7 +68,7 @@ class AnyExplorer(Explorer):
 
         filter = self._config.get("filter")
         if filter:
-            result = list(filter(result, *kwargs["options"]))
+            result = list(filter(list(result), *kwargs["options"]))
 
         return result
 
