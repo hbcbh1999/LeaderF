@@ -229,6 +229,10 @@ class AnyHub(object):
                 kwargs["options"].remove(i)
                 break
 
+        if "--cword" in kwargs["options"]:
+            kwargs["options"].remove("--cword")
+            kwargs["pattern"] = lfEval("expand('<cword>')")
+
         self._managers[category].startExplorer(win_pos[2:], *args, **kwargs)
 
 
