@@ -236,6 +236,7 @@ class AnyHub(object):
             elif category == "mru":
                 from .mruExpl import mruExplManager
                 manager = mruExplManager
+                kwargs["cb_name"] = vim.current.buffer.name
             elif category == "tag":
                 from .tagExpl import tagExplManager
                 manager = tagExplManager

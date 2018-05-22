@@ -38,7 +38,7 @@ class MruExplorer(Explorer):
         if len(lines) == 0:
             return lines
 
-        if args[0] == lines[0]:
+        if kwargs["cb_name"] == lines[0]:
             lines = lines[1:] + lines[0:1]
 
         self._max_bufname_len = max(int(lfEval("strdisplaywidth('%s')"
