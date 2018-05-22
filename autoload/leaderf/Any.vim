@@ -34,11 +34,11 @@ function! leaderf#Any#Maps(category)
     endif
 endfunction
 
-let s:Lf_Categorys = ["File", "Buffer", "Mru", "Tag", "BufTag", "Function",
-            \ "Line", "HistoryCmd", "HistorySearch", "Help", "Colorscheme"]
+let s:Lf_Categorys = ["file", "buffer", "mru", "tag", "bufTag", "function",
+            \ "line", "historyCmd", "historySearch", "help", "colorscheme"]
 
 function! leaderf#Any#parseArguments(argLead, cmdline, cursorPos)
-    return ["aaa", "bbb"]
+    return s:Lf_Categorys
 endfunction
 
 function! leaderf#Any#start(bang, ...)

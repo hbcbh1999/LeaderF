@@ -218,8 +218,44 @@ class AnyHub(object):
 
     def start(self, category, *args, **kwargs):
         self._extensions = vim.bindeval("g:Lf_Extensions")
-        if category not in self._managers:
-            self._managers[category] = AnyExplManager(category, self._extensions[category])
+        if category in self._extensions:
+            if category not in self._managers:
+                self._managers[category] = AnyExplManager(category, self._extensions[category])
+            manager = self._managers[category]
+        else:
+            if category == "file":
+                from .fileExpl import fileExplManager
+                manager = fileExplManager
+            elif category == "buffer":
+                from .bufExpl import bufExplManager
+                manager = bufExplManager
+            elif category == "mru":
+                from .mruExpl import mruExplManager
+                manager = mruExplManager
+            elif category == "tag":
+                from .tagExpl import tagExplManager
+                manager = tagExplManager
+            elif category == "bufTag":
+                from .bufTagExpl import bufTagExplManager
+                manager = bufTagExplManager
+            elif category == "function":
+                from .functionExpl import functionExplManager
+                manager = functionExplManager
+            elif category == "line":
+                from .lineExpl import lineExplManager
+                manager = lineExplManager
+            elif category == "historyCmd":
+                from .historyExpl import historyExplManager
+                manager = historyExplManager
+            elif category == "historySearch":
+                from .historyExpl import historyExplManager
+                manager = historyExplManager
+            elif category == "help":
+                from .helpExpl import helpExplManager
+                manager = helpExplManager
+            elif category == "colorscheme":
+                from .colorschemeExpl import colorschemeExplManager
+                manager = colorschemeExplManager
 
         positions = {"--top", "--bottom", "--left", "--right", "--belowright", "--aboveleft", "--fullScreen"}
         win_pos = "--bottom"
@@ -233,7 +269,7 @@ class AnyHub(object):
             kwargs["options"].remove("--cword")
             kwargs["pattern"] = lfEval("expand('<cword>')")
 
-        self._managers[category].startExplorer(win_pos[2:], *args, **kwargs)
+        manager.startExplorer(win_pos[2:], *args, **kwargs)
 
 
 #*****************************************************
