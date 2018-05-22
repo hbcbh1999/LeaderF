@@ -62,7 +62,11 @@ class AnyExplorer(Explorer):
         elif type(source) == type(b"string"): # "grep -r '%s' *"
             executor = AsyncExecutor()
             self._executor.append(executor)
-            result = executor.execute(lfBytes2Str(source))
+            source = lfBytes2Str(source)
+            if re.search(r'\brg\b|\bag\b|\bpt\b|\bfd\b|\bgit\b', source): # encoding of output is utf-8
+                result = executor.execute(source, encoding=lfEval("&encoding"))
+            else: # buildin command such as dir, grep ...
+                result = executor.execute(source)
         else:
             return None
 
