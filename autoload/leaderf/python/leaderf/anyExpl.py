@@ -140,7 +140,7 @@ class AnyExplManager(Manager):
 
         get_digest = self._config.get("get_digest")
         if get_digest:
-            return get_digest(line, mode)[1]
+            return int(get_digest(line, mode)[1])
         else:
             return super(AnyExplManager, self)._getDigestStartPos(line, mode)
 
