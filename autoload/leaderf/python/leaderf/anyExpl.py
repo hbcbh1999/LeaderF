@@ -15,7 +15,7 @@ from .asyncExecutor import AsyncExecutor
 let g:Lf_Extensions = {
     \ "apple": {
     \       "source": [], "grep -r '%s' *", funcref (...)
-    \       "filter": funcref ([], ...),
+    \       "format": funcref ([], ...),
     \       "accept": funcref (line, ...),
     \       "options": [],
     \       "preview": funcref,
@@ -66,9 +66,9 @@ class AnyExplorer(Explorer):
         else:
             return None
 
-        filter = self._config.get("filter")
-        if filter:
-            result = list(filter(list(result), *kwargs["options"]))
+        format = self._config.get("format")
+        if format:
+            result = list(format(list(result), *kwargs["options"]))
 
         return result
 
