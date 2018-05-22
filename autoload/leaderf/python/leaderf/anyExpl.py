@@ -249,12 +249,14 @@ class AnyHub(object):
             elif category == "line":
                 from .lineExpl import lineExplManager
                 manager = lineExplManager
-            elif category == "historyCmd":
+            elif category == "cmdHistory":
                 from .historyExpl import historyExplManager
                 manager = historyExplManager
-            elif category == "historySearch":
+                kwargs["history"] = "cmd"
+            elif category == "searchHistory":
                 from .historyExpl import historyExplManager
                 manager = historyExplManager
+                kwargs["history"] = "search"
             elif category == "help":
                 from .helpExpl import helpExplManager
                 manager = helpExplManager

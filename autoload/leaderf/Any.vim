@@ -35,7 +35,7 @@ function! leaderf#Any#Maps(category)
 endfunction
 
 let s:Lf_Categorys = ["file", "buffer", "mru", "tag", "bufTag", "function",
-            \ "line", "historyCmd", "historySearch", "help", "colorscheme"]
+            \ "line", "cmdHistory", "searchHistory", "help", "colorscheme"]
 
 function! leaderf#Any#parseArguments(argLead, cmdline, cursorPos)
     return s:Lf_Categorys
