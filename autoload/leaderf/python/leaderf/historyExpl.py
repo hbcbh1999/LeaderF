@@ -21,10 +21,10 @@ class HistoryExplorer(Explorer):
         if "history" in kwargs or len(args) > 0:
             lfCmd("let tmp = @x")
             lfCmd("redir @x")
-            if kwargs.get("history") == "cmd" or args.count("cmd") > 0:
+            if kwargs.get("history") == "cmd" or "cmd" in args:
                 self._history_type = "Cmd_History"
                 lfCmd("silent history :")
-            elif kwargs.get("history") == "search" or args.count("search") > 0:
+            elif kwargs.get("history") == "search" or "search" in args:
                 self._history_type = "Search_History"
                 lfCmd("silent history /")
             else:
