@@ -34,10 +34,42 @@ function! leaderf#Any#Maps(category)
     endif
 endfunction
 
-let s:Lf_Categorys = ["file", "buffer", "mru", "tag", "bufTag", "function",
-            \ "line", "cmdHistory", "searchHistory", "help", "colorscheme"]
+let s:Lf_Categorys = {
+            \ "file":[],
+            \ "buffer":["--all", "--tabpage"],
+            \ "mru":["--cwd"],
+            \ "tag":[],
+            \ "bufTag":["--all"],
+            \ "function":["--all"],
+            \ "line":["--all"],
+            \ "cmdHistory":[],
+            \ "searchHistory":[],
+            \ "help":[],
+            \ "colorscheme":[]
+            \}
+
+let s:Lf_CommonOptions = {
+            \ "positions": ["--top", "--bottom", "--left", "--right", "--belowright", "--aboveleft", "--fullScreen"],
+            \ "cword": ["--cword"]
+            \ }
 
 function! leaderf#Any#parseArguments(argLead, cmdline, cursorPos)
+    echom "argLead:[".a:argLead."]"
+    echom "cmdline:[".a:cmdline."]"
+    echom "cursorPos:[".a:cursorPos."]"
+    let argList = split(a:cmdline, '[ \t!]\+')
+    let argNum = len(argList)
+    if argNum == 1  " Leaderf
+        return keys(s:Lf_Categorys) + keys(g:Lf_Extensions)
+    elseif argNum == 2 && a:cmdline[a:cursorPos-1] !~ '\s'  " 'Leaderf b'
+        return filter(keys(s:Lf_Categorys) + keys(g:Lf_Extensions), "v:val =~? '^".a:argLead."'")
+    else
+        if has_key(g:Lf_Extensions, argList[1])
+            return filter(get(g:Lf_Extensions[argList[1]], "options", []), "v:val =~? '^".a:argLead."'")
+        else
+        endif
+    endif
+
     return s:Lf_Categorys
 endfunction
 
