@@ -48,15 +48,12 @@ let s:Lf_Categorys = {
             \ "colorscheme":[]
             \}
 
-let s:Lf_CommonOptions = {
-            \ "positions": ["--top", "--bottom", "--left", "--right", "--belowright", "--aboveleft", "--fullScreen"],
-            \ "cword": ["--cword"]
-            \ }
+let s:Lf_CommonOptions = [
+            \ ["--top", "--bottom", "--left", "--right", "--belowright", "--aboveleft", "--fullScreen"],
+            \ "--cword"
+            \ ]
 
 function! leaderf#Any#parseArguments(argLead, cmdline, cursorPos)
-    echom "argLead:[".a:argLead."]"
-    echom "cmdline:[".a:cmdline."]"
-    echom "cursorPos:[".a:cursorPos."]"
     let argList = split(a:cmdline, '[ \t!]\+')
     let argNum = len(argList)
     if argNum == 1  " Leaderf
@@ -65,7 +62,9 @@ function! leaderf#Any#parseArguments(argLead, cmdline, cursorPos)
         return filter(keys(s:Lf_Categorys) + keys(g:Lf_Extensions), "v:val =~? '^".a:argLead."'")
     else
         if has_key(g:Lf_Extensions, argList[1])
-            return filter(get(g:Lf_Extensions[argList[1]], "options", []), "v:val =~? '^".a:argLead."'")
+            let options = filter(get(g:Lf_Extensions[argList[1]], "options", []), "v:val not in argList[2:]")
+            let options = filter(get(g:Lf_Extensions[argList[1]], "options", []), "v:val =~? '^".a:argLead."'")
+            let options = filter(options, "v:val")
         else
         endif
     endif
