@@ -61,12 +61,23 @@ function! leaderf#Any#parseArguments(argLead, cmdline, cursorPos)
     elseif argNum == 2 && a:cmdline[a:cursorPos-1] !~ '\s'  " 'Leaderf b'
         return filter(keys(s:Lf_Categorys) + keys(g:Lf_Extensions), "v:val =~? '^".a:argLead."'")
     else
+        let existingOptions = a:cmdline[a:cursorPos-1] !~ '\s' ? argList[2:-2] : argList[2:]
+        let options = []
         if has_key(g:Lf_Extensions, argList[1])
-            let options = filter(get(g:Lf_Extensions[argList[1]], "options", []), "v:val not in argList[2:]")
-            let options = filter(get(g:Lf_Extensions[argList[1]], "options", []), "v:val =~? '^".a:argLead."'")
-            let options = filter(options, "v:val")
-        else
+            let options = filter(copy(get(g:Lf_Extensions[argList[1]], "options", [])), "index(".string(existingOptions).", v:val) == -1")
+        elseif has_key(s:Lf_Categorys, argList[1])
+            let options = filter(copy(s:Lf_Categorys[argList[1]]), "index(".string(existingOptions).", v:val) == -1")
         endif
+        for opt in s:Lf_CommonOptions
+            if type(opt) == type([])
+                if len(filter(copy(opt), "index(".string(existingOptions).", v:val) >= 0")) == 0
+                    let options += opt
+                endif
+            elseif index(existingOptions, opt) == -1
+                call add(options, opt)
+            endif
+        endfor
+        return filter(sort(copy(options)), "v:val =~? '^".a:argLead."'")
     endif
 
     return s:Lf_Categorys
@@ -76,7 +87,7 @@ function! leaderf#Any#start(bang, ...)
     if a:0 == 0
 
     else
-        if !has_key(g:Lf_Extensions, a:1) && index(s:Lf_Categorys, a:1) == -1
+        if !has_key(g:Lf_Extensions, a:1) && index(keys(s:Lf_Categorys), a:1) == -1
             echohl Error
             echo "Unknown argument '" . a:1 . "'!"
             echohl NONE
