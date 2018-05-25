@@ -265,7 +265,7 @@ class AnyHub(object):
                 manager = colorschemeExplManager
 
         positions = {"--top", "--bottom", "--left", "--right", "--belowright", "--aboveleft", "--fullScreen"}
-        win_pos = "--bottom"
+        win_pos = "--" + lfEval("g:Lf_WindowPosition")
         for i in kwargs["options"]:
             if i in positions:
                 win_pos = i
